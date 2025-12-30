@@ -818,7 +818,7 @@ export async function loadReviewSettings() {
   try {
     const { data, error } = await supabase
       .from("wall_review_settings")
-      .select("require_marquee_approval, require_sticker_approval, marquee_enabled, show_online_status")
+      .select("require_marquee_approval, require_sticker_approval, marquee_enabled, show_online_status, comment_enabled")
       .limit(1)
       .maybeSingle();
     if (error && error.code !== "PGRST116") {
@@ -841,6 +841,7 @@ function applyReviewSettings(data) {
   globalReviewSettings.requireStickerApproval = globalReviewSettings.requireMarqueeApproval && Boolean(data.require_sticker_approval);
   globalReviewSettings.marqueeEnabled = data.marquee_enabled !== false; // Default to true if undefined
   globalReviewSettings.showOnlineStatus = data.show_online_status !== false; // Default to true
+  globalReviewSettings.commentEnabled = data.comment_enabled !== false; // Default to true
   applyReviewSettingsToUi();
 }
 
@@ -852,6 +853,16 @@ function applyReviewSettingsToUi() {
     document.documentElement.classList.remove("admin-hide-online-status");
   } else {
     document.documentElement.classList.add("admin-hide-online-status");
+  }
+
+  if (elements.paletteSticker) {
+    if (globalReviewSettings.commentEnabled) {
+      elements.paletteSticker.style.display = "";
+      elements.paletteSticker.style.pointerEvents = "";
+    } else {
+      elements.paletteSticker.style.display = "none";
+      elements.paletteSticker.style.pointerEvents = "none";
+    }
   }
 }
 

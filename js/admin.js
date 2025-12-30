@@ -25,6 +25,8 @@ const searchInput = document.getElementById("searchInput");
 const pendingFilterCheckbox = document.getElementById("pendingFilterCheckbox");
 const totalCountNode = document.getElementById("totalCount");
 const reviewControls = document.getElementById("reviewControls");
+const commentEnabledToggle = document.getElementById("commentEnabledToggle");
+const commentEnabledStatus = document.getElementById("commentEnabledStatus");
 const marqueeEnabledToggle = document.getElementById("marqueeEnabledToggle");
 const marqueeEnabledStatus = document.getElementById("marqueeEnabledStatus");
 const onlineStatusToggle = document.getElementById("onlineStatusToggle");
@@ -82,6 +84,7 @@ const state = {
 
 const reviewSettingsState = {
   id: null,
+  commentEnabled: true,
   marqueeEnabled: true,
   showOnlineStatus: true,
   requireMarqueeApproval: true,
@@ -145,6 +148,7 @@ exportBtn?.addEventListener("click", handleExportEntries);
 exportCsvBtn?.addEventListener("click", handleExportCsv);
 searchInput?.addEventListener("input", debounce(handleSearchInput, 500));
 pendingFilterCheckbox?.addEventListener("change", handlePendingFilterChange);
+commentEnabledToggle?.addEventListener("change", handleCommentEnabledChange);
 marqueeToggle?.addEventListener("change", handleMarqueeToggleChange);
 marqueeEnabledToggle?.addEventListener("change", handleMarqueeEnabledChange);
 onlineStatusToggle?.addEventListener("change", handleOnlineStatusChange);
@@ -822,6 +826,18 @@ function updateTotalCount() {
   totalCountNode.textContent = state.totalCount.toString();
 }
 
+function handleCommentEnabledChange(event) {
+  if (!state.authorized || reviewSettingsState.loading) {
+    event.preventDefault();
+    syncReviewControls();
+    return;
+  }
+  const enabled = Boolean(event.target.checked);
+  void persistReviewSettings({
+    commentEnabled: enabled,
+  });
+}
+
 function handleMarqueeToggleChange(event) {
   if (!state.authorized || reviewSettingsState.loading) {
     event.preventDefault();
@@ -896,6 +912,7 @@ async function initializeReviewSettings() {
 
 function resetReviewControls() {
   reviewSettingsState.id = null;
+  reviewSettingsState.commentEnabled = true;
   reviewSettingsState.marqueeEnabled = true;
   reviewSettingsState.requireMarqueeApproval = true;
   reviewSettingsState.requireStickerApproval = true;
@@ -903,6 +920,10 @@ function resetReviewControls() {
   reviewSettingsState.ready = false;
   if (reviewControls) {
     reviewControls.hidden = true;
+  }
+  if (commentEnabledToggle) {
+    commentEnabledToggle.checked = true;
+    commentEnabledToggle.disabled = true;
   }
   if (marqueeEnabledToggle) {
     marqueeEnabledToggle.checked = true;
@@ -925,7 +946,7 @@ async function fetchOrCreateReviewSettings() {
   }
   const baseQuery = supabaseClient
     .from("wall_review_settings")
-    .select("id, require_marquee_approval, require_sticker_approval, marquee_enabled, show_online_status")
+    .select("id, require_marquee_approval, require_sticker_approval, marquee_enabled, show_online_status, comment_enabled")
     .limit(1)
     .maybeSingle();
   const { data, error } = await baseQuery;
@@ -937,7 +958,7 @@ async function fetchOrCreateReviewSettings() {
   }
   const { data: inserted, error: insertError } = await supabaseClient
     .from("wall_review_settings")
-    .insert({ require_marquee_approval: true, require_sticker_approval: true, marquee_enabled: true, show_online_status: true })
+    .insert({ require_marquee_approval: true, require_sticker_approval: true, marquee_enabled: true, show_online_status: true, comment_enabled: true })
     .select()
     .single();
   if (insertError) {
@@ -952,6 +973,7 @@ function applyReviewSettingsState(payload = {}) {
   }
   reviewSettingsState.id = payload.id ?? reviewSettingsState.id;
   const marqueeRequired = Boolean(payload.require_marquee_approval);
+  reviewSettingsState.commentEnabled = payload.comment_enabled !== false; // Default true
   reviewSettingsState.marqueeEnabled = payload.marquee_enabled !== false; // Default true
   reviewSettingsState.showOnlineStatus = payload.show_online_status !== false; // Default true
   reviewSettingsState.requireMarqueeApproval = marqueeRequired;
@@ -972,6 +994,16 @@ function syncReviewControls() {
     return;
   }
   
+  const commentEnabled = reviewSettingsState.commentEnabled;
+  if (commentEnabledToggle) {
+    commentEnabledToggle.checked = commentEnabled;
+    commentEnabledToggle.disabled = reviewSettingsState.loading;
+  }
+  if (commentEnabledStatus) {
+    commentEnabledStatus.textContent = commentEnabled ? "開啟" : "關閉";
+    commentEnabledStatus.dataset.state = commentEnabled ? "on" : "off";
+  }
+
   const marqueeEnabled = reviewSettingsState.marqueeEnabled;
   if (marqueeEnabledToggle) {
     marqueeEnabledToggle.checked = marqueeEnabled;
@@ -1029,6 +1061,9 @@ async function persistReviewSettings(values) {
   }
 
   const updates = {};
+  if (values.commentEnabled !== undefined) {
+    updates.comment_enabled = values.commentEnabled;
+  }
   if (values.marqueeEnabled !== undefined) {
     updates.marquee_enabled = values.marqueeEnabled;
   }
