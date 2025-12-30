@@ -46,6 +46,7 @@
             <button type="button" id="batchApproveBtn" class="primary-btn small">批次通過</button>
             <button type="button" id="batchDeleteBtn" class="danger-btn small">批次刪除</button>
           </div>
+          <button type="button" id="qrCodeBtn" class="ghost-btn">顯示 QR Code</button>
           <button type="button" id="refreshBtn" class="ghost-btn">重新整理</button>
           <div class="export-group">
             <button type="button" id="exportBtn" class="ghost-btn" disabled>匯出 TXT</button>
@@ -57,12 +58,30 @@
 
       <section class="review-controls-compact" id="reviewControls" hidden aria-live="polite">
         <div class="review-item">
+          <span class="review-item-label" id="marqueeEnabledLabel">跑馬燈開關</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="marqueeEnabledToggle" role="switch" aria-labelledby="marqueeEnabledLabel">
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+          <span class="review-status-text" id="marqueeEnabledStatus">開啟</span>
+        </div>
+
+        <div class="review-item">
           <span class="review-item-label" id="marqueeReviewLabel">跑馬燈審核</span>
           <label class="toggle-switch">
             <input type="checkbox" id="marqueeApprovalToggle" role="switch" aria-labelledby="marqueeReviewLabel">
             <span class="switch-track"><span class="switch-thumb"></span></span>
           </label>
           <span class="review-status-text" id="marqueeReviewStatus">需審核</span>
+        </div>
+
+        <div class="review-item">
+          <span class="review-item-label" id="onlineStatusLabel">顯示在線人數</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="onlineStatusToggle" role="switch" aria-labelledby="onlineStatusLabel">
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+          <span class="review-status-text" id="onlineStatusText">顯示</span>
         </div>
         
         <div class="review-item" id="stickerReviewCard" hidden>
@@ -151,6 +170,23 @@
       <footer class="modal-footer">
         <button type="button" id="modalCancelBtn" class="ghost-btn">取消</button>
         <button type="button" id="modalConfirmBtn" class="danger-btn">確認刪除</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="qrCodeModal" class="modal-overlay" hidden aria-hidden="true">
+    <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle">
+      <header class="modal-header">
+        <h3 id="qrModalTitle" class="modal-title">活動 QR Code</h3>
+      </header>
+      <div class="modal-body" style="text-align: center;">
+        <div id="qrCodeContainer" style="margin: 20px auto; background: white; padding: 10px; display: inline-block; border-radius: 8px;">
+          <img id="qrCodeImage" src="" alt="QR Code" width="250" height="250">
+        </div>
+        <p style="margin-bottom: 20px;">掃描此 QR Code 即可進入活動頁面</p>
+      </div>
+      <footer class="modal-footer" style="justify-content: center;">
+        <button type="button" id="closeQrCodeBtn" class="primary-btn">關閉</button>
       </footer>
     </div>
   </div>

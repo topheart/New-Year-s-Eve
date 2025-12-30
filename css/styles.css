@@ -2537,7 +2537,8 @@ body.playback-mode .zoom-controls {
 
 
 /* Hide online status button if preference is set */
-html.hide-online-status #onlineCountBtn {
+html.hide-online-status #onlineCountBtn,
+html.admin-hide-online-status #onlineCountBtn {
   display: none !important;
 }
 

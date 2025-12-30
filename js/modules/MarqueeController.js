@@ -73,6 +73,16 @@ export function updateMarqueePool(stickersMap, reviewSettings) {
   if (!marqueeState.lines.length) {
     return;
   }
+
+  // If marquee is disabled globally, clear the pool
+  if (reviewSettings.marqueeEnabled === false) {
+    marqueeState.pool = [];
+    if (marqueeState.initialized) {
+      refreshMarqueeFlow();
+    }
+    return;
+  }
+
   const requireApproval = reviewSettings.requireMarqueeApproval;
   const eligibleRecords = Array.from(stickersMap.values()).filter((record) => {
     const note = (record.note ?? "").trim();

@@ -818,7 +818,7 @@ export async function loadReviewSettings() {
   try {
     const { data, error } = await supabase
       .from("wall_review_settings")
-      .select("require_marquee_approval, require_sticker_approval")
+      .select("require_marquee_approval, require_sticker_approval, marquee_enabled, show_online_status")
       .limit(1)
       .maybeSingle();
     if (error && error.code !== "PGRST116") {
@@ -839,12 +839,20 @@ function applyReviewSettings(data) {
   if (!data) return;
   globalReviewSettings.requireMarqueeApproval = Boolean(data.require_marquee_approval);
   globalReviewSettings.requireStickerApproval = globalReviewSettings.requireMarqueeApproval && Boolean(data.require_sticker_approval);
+  globalReviewSettings.marqueeEnabled = data.marquee_enabled !== false; // Default to true if undefined
+  globalReviewSettings.showOnlineStatus = data.show_online_status !== false; // Default to true
   applyReviewSettingsToUi();
 }
 
 function applyReviewSettingsToUi() {
   refreshAllStickerReviewStates();
   callbacks.updateMarqueePool(globalState.stickers, globalReviewSettings);
+  
+  if (globalReviewSettings.showOnlineStatus) {
+    document.documentElement.classList.remove("admin-hide-online-status");
+  } else {
+    document.documentElement.classList.add("admin-hide-online-status");
+  }
 }
 
 export function refreshAllStickerReviewStates() {

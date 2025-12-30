@@ -25,6 +25,10 @@ const searchInput = document.getElementById("searchInput");
 const pendingFilterCheckbox = document.getElementById("pendingFilterCheckbox");
 const totalCountNode = document.getElementById("totalCount");
 const reviewControls = document.getElementById("reviewControls");
+const marqueeEnabledToggle = document.getElementById("marqueeEnabledToggle");
+const marqueeEnabledStatus = document.getElementById("marqueeEnabledStatus");
+const onlineStatusToggle = document.getElementById("onlineStatusToggle");
+const onlineStatusText = document.getElementById("onlineStatusText");
 const marqueeToggle = document.getElementById("marqueeApprovalToggle");
 const stickerToggle = document.getElementById("stickerApprovalToggle");
 const stickerReviewCard = document.getElementById("stickerReviewCard");
@@ -34,6 +38,10 @@ const selectAllCheckbox = document.getElementById("selectAllCheckbox");
 const batchActions = document.getElementById("batchActions");
 const batchApproveBtn = document.getElementById("batchApproveBtn");
 const batchDeleteBtn = document.getElementById("batchDeleteBtn");
+const qrCodeBtn = document.getElementById("qrCodeBtn");
+const qrCodeModal = document.getElementById("qrCodeModal");
+const closeQrCodeBtn = document.getElementById("closeQrCodeBtn");
+const qrCodeImage = document.getElementById("qrCodeImage");
 const paginationControls = document.getElementById("paginationControls");
 const paginationInfo = document.getElementById("paginationInfo");
 const prevPageBtn = document.getElementById("prevPageBtn");
@@ -74,6 +82,8 @@ const state = {
 
 const reviewSettingsState = {
   id: null,
+  marqueeEnabled: true,
+  showOnlineStatus: true,
   requireMarqueeApproval: true,
   requireStickerApproval: true,
   loading: false,
@@ -136,6 +146,8 @@ exportCsvBtn?.addEventListener("click", handleExportCsv);
 searchInput?.addEventListener("input", debounce(handleSearchInput, 500));
 pendingFilterCheckbox?.addEventListener("change", handlePendingFilterChange);
 marqueeToggle?.addEventListener("change", handleMarqueeToggleChange);
+marqueeEnabledToggle?.addEventListener("change", handleMarqueeEnabledChange);
+onlineStatusToggle?.addEventListener("change", handleOnlineStatusChange);
 stickerToggle?.addEventListener("change", handleStickerToggleChange);
 selectAllCheckbox?.addEventListener("change", handleSelectAllChange);
 batchApproveBtn?.addEventListener("click", handleBatchApprove);
@@ -765,6 +777,30 @@ function handleMarqueeToggleChange(event) {
   });
 }
 
+function handleMarqueeEnabledChange(event) {
+  if (!state.authorized || reviewSettingsState.loading) {
+    event.preventDefault();
+    syncReviewControls();
+    return;
+  }
+  const enabled = Boolean(event.target.checked);
+  void persistReviewSettings({
+    marqueeEnabled: enabled,
+  });
+}
+
+function handleOnlineStatusChange(event) {
+  if (!state.authorized || reviewSettingsState.loading) {
+    event.preventDefault();
+    syncReviewControls();
+    return;
+  }
+  const enabled = Boolean(event.target.checked);
+  void persistReviewSettings({
+    showOnlineStatus: enabled,
+  });
+}
+
 function handleStickerToggleChange(event) {
   if (!state.authorized || reviewSettingsState.loading || !reviewSettingsState.requireMarqueeApproval) {
     event.preventDefault();
@@ -801,12 +837,17 @@ async function initializeReviewSettings() {
 
 function resetReviewControls() {
   reviewSettingsState.id = null;
+  reviewSettingsState.marqueeEnabled = true;
   reviewSettingsState.requireMarqueeApproval = true;
   reviewSettingsState.requireStickerApproval = true;
   reviewSettingsState.loading = false;
   reviewSettingsState.ready = false;
   if (reviewControls) {
     reviewControls.hidden = true;
+  }
+  if (marqueeEnabledToggle) {
+    marqueeEnabledToggle.checked = true;
+    marqueeEnabledToggle.disabled = true;
   }
   if (marqueeToggle) {
     marqueeToggle.checked = true;
@@ -825,7 +866,7 @@ async function fetchOrCreateReviewSettings() {
   }
   const baseQuery = supabaseClient
     .from("wall_review_settings")
-    .select("id, require_marquee_approval, require_sticker_approval")
+    .select("id, require_marquee_approval, require_sticker_approval, marquee_enabled")
     .limit(1)
     .maybeSingle();
   const { data, error } = await baseQuery;
@@ -837,7 +878,7 @@ async function fetchOrCreateReviewSettings() {
   }
   const { data: inserted, error: insertError } = await supabaseClient
     .from("wall_review_settings")
-    .insert({ require_marquee_approval: true, require_sticker_approval: true })
+    .insert({ require_marquee_approval: true, require_sticker_approval: true, marquee_enabled: true })
     .select()
     .single();
   if (insertError) {
@@ -852,6 +893,8 @@ function applyReviewSettingsState(payload = {}) {
   }
   reviewSettingsState.id = payload.id ?? reviewSettingsState.id;
   const marqueeRequired = Boolean(payload.require_marquee_approval);
+  reviewSettingsState.marqueeEnabled = payload.marquee_enabled !== false; // Default true
+  reviewSettingsState.showOnlineStatus = payload.show_online_status !== false; // Default true
   reviewSettingsState.requireMarqueeApproval = marqueeRequired;
   reviewSettingsState.requireStickerApproval = marqueeRequired && Boolean(payload.require_sticker_approval);
   syncReviewControls();
@@ -869,22 +912,43 @@ function syncReviewControls() {
   if (!state.authorized) {
     return;
   }
-  const marqueeEnabled = Boolean(reviewSettingsState.requireMarqueeApproval);
+  
+  const marqueeEnabled = reviewSettingsState.marqueeEnabled;
+  if (marqueeEnabledToggle) {
+    marqueeEnabledToggle.checked = marqueeEnabled;
+    marqueeEnabledToggle.disabled = reviewSettingsState.loading;
+  }
+  if (marqueeEnabledStatus) {
+    marqueeEnabledStatus.textContent = marqueeEnabled ? "開啟" : "關閉";
+    marqueeEnabledStatus.dataset.state = marqueeEnabled ? "on" : "off";
+  }
+
+  const showOnlineStatus = reviewSettingsState.showOnlineStatus;
+  if (onlineStatusToggle) {
+    onlineStatusToggle.checked = showOnlineStatus;
+    onlineStatusToggle.disabled = reviewSettingsState.loading;
+  }
+  if (onlineStatusText) {
+    onlineStatusText.textContent = showOnlineStatus ? "顯示" : "隱藏";
+    onlineStatusText.dataset.state = showOnlineStatus ? "on" : "off";
+  }
+
+  const marqueeRequired = Boolean(reviewSettingsState.requireMarqueeApproval);
   if (marqueeToggle) {
-    marqueeToggle.checked = marqueeEnabled;
-    marqueeToggle.disabled = reviewSettingsState.loading;
+    marqueeToggle.checked = marqueeRequired;
+    marqueeToggle.disabled = reviewSettingsState.loading || !marqueeEnabled;
   }
   if (marqueeReviewStatus) {
-    marqueeReviewStatus.textContent = marqueeEnabled ? "需審核" : "免審";
-    marqueeReviewStatus.dataset.state = marqueeEnabled ? "on" : "off";
+    marqueeReviewStatus.textContent = marqueeRequired ? "需審核" : "免審";
+    marqueeReviewStatus.dataset.state = marqueeRequired ? "on" : "off";
   }
   if (stickerReviewCard) {
-    stickerReviewCard.hidden = !marqueeEnabled;
+    stickerReviewCard.hidden = !marqueeRequired;
   }
-  const stickerEnabled = marqueeEnabled && Boolean(reviewSettingsState.requireStickerApproval);
+  const stickerEnabled = marqueeRequired && Boolean(reviewSettingsState.requireStickerApproval);
   if (stickerToggle) {
     stickerToggle.checked = stickerEnabled;
-    stickerToggle.disabled = reviewSettingsState.loading || !marqueeEnabled;
+    stickerToggle.disabled = reviewSettingsState.loading || !marqueeRequired || !marqueeEnabled;
   }
   if (stickerReviewStatus) {
     stickerReviewStatus.textContent = stickerEnabled ? "需審核" : "免審";
@@ -903,18 +967,33 @@ async function persistReviewSettings(values) {
     syncReviewControls();
     return;
   }
-  const payload = {
-    require_marquee_approval: Boolean(values.require_marquee_approval),
-    require_sticker_approval: Boolean(values.require_marquee_approval) && Boolean(values.require_sticker_approval),
-  };
+
+  const updates = {};
+  if (values.marqueeEnabled !== undefined) {
+    updates.marquee_enabled = values.marqueeEnabled;
+  }
+  if (values.showOnlineStatus !== undefined) {
+    updates.show_online_status = values.showOnlineStatus;
+  }
+  if (values.requireMarqueeApproval !== undefined) {
+    updates.require_marquee_approval = values.requireMarqueeApproval;
+    // If disabling marquee approval, also disable sticker approval
+    if (!values.requireMarqueeApproval) {
+      updates.require_sticker_approval = false;
+    }
+  }
+  if (values.requireStickerApproval !== undefined) {
+    updates.require_sticker_approval = values.requireStickerApproval;
+  }
+
   reviewSettingsState.loading = true;
   syncReviewControls();
   try {
     let query = supabaseClient.from("wall_review_settings");
     if (reviewSettingsState.id) {
-      query = query.update(payload).eq("id", reviewSettingsState.id);
+      query = query.update(updates).eq("id", reviewSettingsState.id);
     } else {
-      query = query.insert(payload);
+      query = query.insert(updates);
     }
     const { data, error } = await query.select().single();
     if (error) {
