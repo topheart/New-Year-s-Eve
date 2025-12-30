@@ -1020,46 +1020,8 @@ export function setShimmerPaused(paused) {
 }
 
 export function initShimmerSystem(stickersMap, state) {
-  const runLoop = () => {
-    if (shimmerState.paused) {
-      setTimeout(runLoop, 1000);
-      return;
-    }
-
-    const stickers = Array.from(stickersMap.values());
-    if (stickers.length > 0) {
-      // Max 3 concurrent shimmers
-      const currentShimmers = document.querySelectorAll('.sticker-node.shimmering').length;
-      
-      if (currentShimmers < 3) {
-        // Filter stickers from the last 24 hours
-        const now = Date.now();
-        const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-        
-        const recentStickers = stickers.filter(s => {
-          if (!s.created_at) return false;
-          const created = new Date(s.created_at).getTime();
-          return !Number.isNaN(created) && (now - created) < twentyFourHoursMs;
-        });
-
-        // Only use recent stickers (last 24h). If none, do nothing.
-        if (recentStickers.length > 0) {
-          const randomRecord = recentStickers[Math.floor(Math.random() * recentStickers.length)];
-          
-          if (randomRecord && randomRecord.node && 
-              state.pending?.id !== randomRecord.id &&
-              state.drag?.node !== randomRecord.node &&
-              !randomRecord.node.classList.contains("pending") &&
-              !randomRecord.node.classList.contains("shimmering")) {
-            triggerShimmer(randomRecord.node);
-          }
-        }
-      }
-    }
-    // Schedule next run between 1s and 5s
-    setTimeout(runLoop, 1000 + Math.random() * 4000);
-  };
-  runLoop();
+  // Shimmer system disabled by user request
+  return;
 }
 
 function triggerShimmer(node) {

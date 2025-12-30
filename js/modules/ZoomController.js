@@ -342,18 +342,11 @@ function handleStagePointerMove(event) {
   const dy = event.clientY - panState.startY;
   if (!panState.moved) {
     panState.moved = Math.hypot(dx, dy) > 8;
-    if (panState.moved) {
-      // Optimization: Disable pointer events on stickers during drag to prevent hover lag
-      if (elements.stickersLayer) {
-        elements.stickersLayer.style.pointerEvents = "none";
-      }
-      
-      if (typeof interactionElement?.setPointerCapture === "function") {
-        try {
-          interactionElement.setPointerCapture(event.pointerId);
-        } catch (error) {
-          console.warn("Pointer capture failed", error);
-        }
+    if (panState.moved && typeof interactionElement?.setPointerCapture === "function") {
+      try {
+        interactionElement.setPointerCapture(event.pointerId);
+      } catch (error) {
+        console.warn("Pointer capture failed", error);
       }
     }
   }
@@ -371,11 +364,6 @@ function handleStagePointerUp(event) {
     releasePointer(event.pointerId);
     panState.pointerId = null;
     panState.moved = false;
-    
-    // Restore pointer events
-    if (elements.stickersLayer) {
-      elements.stickersLayer.style.pointerEvents = "";
-    }
   }
   if (panState.pointers.has(event.pointerId)) {
     panState.pointers.delete(event.pointerId);
@@ -384,11 +372,6 @@ function handleStagePointerUp(event) {
       if (panState.pointers.size === 1) {
         panState.pointerId = null;
         panState.moved = false;
-        
-        // Restore pointer events (for pinch end)
-        if (elements.stickersLayer) {
-          elements.stickersLayer.style.pointerEvents = "";
-        }
       }
     }
   }

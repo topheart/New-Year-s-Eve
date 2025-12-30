@@ -1241,7 +1241,7 @@ function beginPlacement(x, y) {
     canViewNote: true,
     authorName: localStorage.getItem(USER_NAME_KEY) || null,
   };
-  dialogTitle.textContent = state.pending.authorName || "新增貼紙";
+  dialogTitle.textContent = "留言貼紙";
   noteInput.value = "";
   resetNoteInputScrollPosition();
   formError.textContent = "";
@@ -1731,7 +1731,7 @@ function openStickerModal(id) {
     canViewNote: Boolean(record.canViewNote),
     authorName: record.authorName,
   };
-  dialogTitle.textContent = record.authorName || "神蹟留言";
+  dialogTitle.textContent = "留言貼紙";
   noteInput.value = record.note ?? "";
   resetNoteInputScrollPosition();
   formError.textContent = "";
@@ -2053,25 +2053,6 @@ function finalizeFlipReveal() {
     authorDisplay.remove();
   }
   
-  const currentAuthor = state.pending?.authorName || localStorage.getItem(USER_NAME_KEY);
-  if (currentAuthor) {
-    const display = document.createElement("span");
-    display.id = "noteAuthorDisplay";
-    display.className = "sticker-author";
-    display.textContent = `${currentAuthor}`;
-    
-    // Insert inside the flip-body, after the textarea
-    const flipBody = document.querySelector(".flip-body");
-    if (flipBody) {
-      flipBody.appendChild(display);
-    } else if (noteTimestamp && noteTimestamp.parentNode) {
-      // Fallback
-      noteTimestamp.parentNode.insertBefore(display, noteTimestamp.nextSibling);
-    } else {
-      noteForm.appendChild(display);
-    }
-  }
-
   requestAnimationFrame(() => noteInput.focus({ preventScroll: true }));
 }
 
@@ -2134,18 +2115,21 @@ function setTimestampDisplay(record) {
   if (!noteTimestamp) {
     return;
   }
-  if (!record || !record.created_at) {
+  
+  // Use author name instead of timestamp
+  // If record is provided (viewing existing), only use its author name
+  // If record is null (creating new), use pending state or local storage
+  const authorName = record 
+    ? record.authorName 
+    : (state.pending?.authorName || localStorage.getItem(USER_NAME_KEY));
+  
+  if (!authorName) {
     noteTimestamp.textContent = "";
     noteTimestamp.hidden = true;
     return;
   }
-  const createdText = Utils.formatDateTime(record.created_at, timestampFormatter);
-  if (!createdText) {
-    noteTimestamp.textContent = "";
-    noteTimestamp.hidden = true;
-    return;
-  }
-  noteTimestamp.textContent = `留言時間：${createdText}`;
+  
+  noteTimestamp.textContent = authorName;
   noteTimestamp.hidden = false;
 }
 
