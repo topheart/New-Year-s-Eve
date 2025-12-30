@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="css/read-mode.css">
   <link rel="stylesheet" href="css/expand-btn.css">
   <link rel="stylesheet" href="css/playback-spotlight.css">
+  <link rel="stylesheet" href="css/author-name.css">
 </head>
 <body>
   <main>
@@ -308,6 +309,15 @@
       <section class="settings-section" aria-labelledby="audioSettingLabel">
         <div class="settings-row">
           <div>
+            <p class="settings-label">您的署名</p>
+            <p class="settings-description">修改留言時顯示的名稱。</p>
+          </div>
+          <div class="settings-input-wrapper">
+            <input type="text" id="settingsNameInput" class="settings-input" placeholder="未設定" maxlength="20">
+          </div>
+        </div>
+        <div class="settings-row">
+          <div>
             <p id="audioSettingLabel" class="settings-label">背景音樂</p>
             <p class="settings-description">切換音樂播放。</p>
           </div>
@@ -403,6 +413,22 @@
       <div id="readModeContent" class="read-mode-content" hidden></div>
       <textarea id="readModeInput" placeholder="輸入留言&#10;&#10;『記得署名喔』"></textarea>
     </div>
+  </dialog>
+
+  <dialog id="welcomeDialog" class="welcome-dialog">
+    <form method="dialog" id="welcomeForm" class="welcome-form">
+      <header class="welcome-header">
+        <h2>歡迎來到神蹟牆</h2>
+        <p>請輸入您的名稱，這將顯示在您的留言下方。</p>
+      </header>
+      <div class="welcome-content">
+        <label for="welcomeNameInput" class="sr-only">您的名稱</label>
+        <input type="text" id="welcomeNameInput" placeholder="您的名稱" maxlength="20" required autocomplete="off">
+      </div>
+      <footer class="welcome-footer">
+        <button type="submit" class="welcome-primary">開始體驗</button>
+      </footer>
+    </form>
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha384-fXdIufVbE9aU7STmdk/DWK0imNOozId9fTwzM/gi0NfPjphEIC3gq0M760UnsKVy" crossorigin="anonymous"></script>

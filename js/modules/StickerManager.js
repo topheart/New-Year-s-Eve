@@ -101,7 +101,7 @@ export async function loadExistingStickers() {
   const { data, error } = await supabase
     .from("wall_stickers")
     .select(
-      "id, x_norm, y_norm, note, created_at, updated_at, device_id, is_approved"
+      "id, x_norm, y_norm, note, created_at, updated_at, device_id, is_approved, author_name"
     )
     .order("created_at", { ascending: true });
   
@@ -155,6 +155,7 @@ export async function loadExistingStickers() {
       updated_at: record.updated_at,
       deviceId: record.device_id ?? null,
       isApproved: Boolean(record.is_approved),
+      authorName: record.author_name,
       canViewNote: canViewNote,
     });
     callbacks.runPopAnimation(node);
@@ -672,6 +673,7 @@ export async function saveSticker(pending, message) {
     p_y_norm: pending.y / globalViewBox.height,
     p_note: message,
     p_device_id: globalState.deviceId ?? null,
+    p_author_name: localStorage.getItem("wallUserName") || null,
   };
   
   const { data, error } = await supabase.rpc("create_wall_sticker", payload);
@@ -695,6 +697,7 @@ export async function saveSticker(pending, message) {
   pending.updated_at = inserted.updated_at;
   pending.deviceId = inserted.device_id ?? globalState.deviceId;
   pending.isApproved = Boolean(inserted.is_approved);
+  pending.authorName = inserted.author_name;
   pending.canViewNote = true;
 
   globalState.stickers.set(newId, pending);
@@ -939,6 +942,7 @@ export function subscribeToStickers() {
           updated_at: record.updated_at,
           deviceId: record.device_id ?? null,
           isApproved: Boolean(record.is_approved),
+          authorName: record.author_name,
           canViewNote: canViewNote,
         };
 

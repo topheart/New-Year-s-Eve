@@ -81,10 +81,15 @@ const flipFront = document.getElementById("flipFront");
 const flipBack = document.getElementById("flipBack");
 const saveButton = noteForm ? noteForm.querySelector('button[type="submit"]') : null;
 const deleteStickerBtn = document.getElementById("deleteStickerBtn");
+const welcomeDialog = document.getElementById("welcomeDialog");
+const welcomeForm = document.getElementById("welcomeForm");
+const welcomeNameInput = document.getElementById("welcomeNameInput");
+const settingsNameInput = document.getElementById("settingsNameInput");
 const mediaPrefersReducedMotion = typeof window !== "undefined" && typeof window.matchMedia === "function"
   ? window.matchMedia("(prefers-reduced-motion: reduce)")
   : null;
 const DEVICE_STORAGE_KEY = "wallDeviceId";
+const USER_NAME_KEY = "wallUserName";
 let timestampFormatter = null;
 try {
   timestampFormatter = new Intl.DateTimeFormat("zh-TW", {
@@ -186,6 +191,44 @@ function init() {
   paletteSticker?.addEventListener("pointerdown", handlePalettePointerDown);
   paletteSticker?.addEventListener("keydown", handlePaletteKeydown);
   noteForm.addEventListener("submit", handleFormSubmit);
+  
+  // Welcome Dialog Logic
+  if (welcomeDialog && welcomeForm) {
+    const savedName = localStorage.getItem(USER_NAME_KEY);
+    if (!savedName) {
+      welcomeDialog.showModal();
+    }
+    
+    welcomeForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = welcomeNameInput.value.trim();
+      if (name) {
+        localStorage.setItem(USER_NAME_KEY, name);
+        welcomeDialog.close();
+        if (settingsNameInput) {
+          settingsNameInput.value = name;
+        }
+      }
+    });
+  }
+
+  // Settings Name Input Logic
+  if (settingsNameInput) {
+    const savedName = localStorage.getItem(USER_NAME_KEY);
+    if (savedName) {
+      settingsNameInput.value = savedName;
+    }
+    
+    settingsNameInput.addEventListener("change", (e) => {
+      const newName = e.target.value.trim();
+      if (newName) {
+        localStorage.setItem(USER_NAME_KEY, newName);
+      } else {
+        // Revert if empty
+        e.target.value = localStorage.getItem(USER_NAME_KEY) || "";
+      }
+    });
+  }
   
   // Read Mode Overlay Logic
   const readModeOverlay = document.getElementById('readModeOverlay');
@@ -1196,6 +1239,7 @@ function beginPlacement(x, y) {
     deviceId: state.deviceId ?? null,
     isApproved: false,
     canViewNote: true,
+    authorName: localStorage.getItem(USER_NAME_KEY) || null,
   };
   dialogTitle.textContent = "新增貼紙";
   noteInput.value = "";
@@ -1685,6 +1729,7 @@ function openStickerModal(id) {
     lockReason: null,
     isApproved: Boolean(record.isApproved),
     canViewNote: Boolean(record.canViewNote),
+    authorName: record.authorName,
   };
   dialogTitle.textContent = "神蹟留言";
   noteInput.value = record.note ?? "";
@@ -2001,6 +2046,28 @@ function finalizeFlipReveal() {
   flipCardInner.style.transform = "rotateY(180deg)";
   flipFront?.setAttribute("aria-hidden", "true");
   flipBack?.setAttribute("aria-hidden", "false");
+  
+  // Update author name display
+  const authorDisplay = document.getElementById("noteAuthorDisplay");
+  if (authorDisplay) {
+    authorDisplay.remove();
+  }
+  
+  const currentAuthor = state.pending?.authorName || localStorage.getItem(USER_NAME_KEY);
+  if (currentAuthor) {
+    const display = document.createElement("span");
+    display.id = "noteAuthorDisplay";
+    display.className = "sticker-author";
+    display.textContent = `— ${currentAuthor}`;
+    
+    // Insert after the textarea or timestamp
+    if (noteTimestamp && noteTimestamp.parentNode) {
+      noteTimestamp.parentNode.insertBefore(display, noteTimestamp.nextSibling);
+    } else {
+      noteForm.appendChild(display);
+    }
+  }
+
   requestAnimationFrame(() => noteInput.focus({ preventScroll: true }));
 }
 
