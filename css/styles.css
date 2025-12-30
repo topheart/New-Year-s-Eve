@@ -2542,6 +2542,11 @@ html.admin-hide-online-status #onlineCountBtn {
   display: none !important;
 }
 
+/* Hide online setting row if admin disabled it */
+html.admin-hide-online-status #onlineSettingRow {
+  display: none !important;
+}
+
 /* Search Quick Filters */
 .search-quick-filters {
   position: fixed;

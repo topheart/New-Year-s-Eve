@@ -161,6 +161,65 @@ pageInput?.addEventListener("change", (e) => {
 modalCancelBtn?.addEventListener("click", closeDeleteModal);
 modalConfirmBtn?.addEventListener("click", executePendingDelete);
 
+qrCodeBtn?.addEventListener("click", () => {
+  if (qrCodeModal) {
+    qrCodeModal.hidden = false;
+    qrCodeModal.setAttribute("aria-hidden", "false");
+    
+    const container = document.getElementById("qrCodeContainer");
+    if (!container) return;
+    
+    // Clear previous content
+    container.innerHTML = "";
+    
+    // Calculate URL
+    let targetUrl = window.location.href;
+    if (targetUrl.includes("admin.html")) {
+      targetUrl = targetUrl.replace("admin.html", "index.html");
+    } else {
+      // Fallback: assume we are in a folder and index.html is in the same folder
+      const lastSlash = targetUrl.lastIndexOf("/");
+      if (lastSlash !== -1) {
+        targetUrl = targetUrl.substring(0, lastSlash + 1) + "index.html";
+      } else {
+        targetUrl = targetUrl + "/index.html";
+      }
+    }
+
+    // Generate QR Code
+    if (window.QRCode) {
+      try {
+        new QRCode(container, {
+          text: targetUrl,
+          width: 250,
+          height: 250,
+          colorDark : "#000000",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
+        });
+      } catch (e) {
+        console.error("QRCode generation failed", e);
+        container.textContent = "QR Code 生成失敗";
+      }
+    } else {
+      // Fallback to API
+      const img = document.createElement("img");
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(targetUrl)}`;
+      img.alt = "QR Code";
+      img.width = 250;
+      img.height = 250;
+      container.appendChild(img);
+    }
+  }
+});
+
+closeQrCodeBtn?.addEventListener("click", () => {
+  if (qrCodeModal) {
+    qrCodeModal.hidden = true;
+    qrCodeModal.setAttribute("aria-hidden", "true");
+  }
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   passwordInput?.focus();
 });
@@ -866,7 +925,7 @@ async function fetchOrCreateReviewSettings() {
   }
   const baseQuery = supabaseClient
     .from("wall_review_settings")
-    .select("id, require_marquee_approval, require_sticker_approval, marquee_enabled")
+    .select("id, require_marquee_approval, require_sticker_approval, marquee_enabled, show_online_status")
     .limit(1)
     .maybeSingle();
   const { data, error } = await baseQuery;
@@ -878,7 +937,7 @@ async function fetchOrCreateReviewSettings() {
   }
   const { data: inserted, error: insertError } = await supabaseClient
     .from("wall_review_settings")
-    .insert({ require_marquee_approval: true, require_sticker_approval: true, marquee_enabled: true })
+    .insert({ require_marquee_approval: true, require_sticker_approval: true, marquee_enabled: true, show_online_status: true })
     .select()
     .single();
   if (insertError) {
