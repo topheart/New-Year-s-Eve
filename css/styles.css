@@ -1958,6 +1958,10 @@ body.placement-active #paletteSticker svg {
  overflow: visible !important;
 }
 
+/* Optimization: Hint browser to promote to compositor layer */
+#wallSvg {
+  will-change: transform;
+}
 
 /* Fire Effect */
 .fire-particle {

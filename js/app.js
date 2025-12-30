@@ -1241,7 +1241,7 @@ function beginPlacement(x, y) {
     canViewNote: true,
     authorName: localStorage.getItem(USER_NAME_KEY) || null,
   };
-  dialogTitle.textContent = "新增貼紙";
+  dialogTitle.textContent = state.pending.authorName || "新增貼紙";
   noteInput.value = "";
   resetNoteInputScrollPosition();
   formError.textContent = "";
@@ -1731,7 +1731,7 @@ function openStickerModal(id) {
     canViewNote: Boolean(record.canViewNote),
     authorName: record.authorName,
   };
-  dialogTitle.textContent = "神蹟留言";
+  dialogTitle.textContent = record.authorName || "神蹟留言";
   noteInput.value = record.note ?? "";
   resetNoteInputScrollPosition();
   formError.textContent = "";

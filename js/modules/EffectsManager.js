@@ -1315,8 +1315,8 @@ export function updateFireIntensity(stickersMap) {
 }
 
 export function setFireIntensity(count) {
-  // 0 to 700 stickers maps to 0 to 1 intensity
-  const maxStickers = 700;
+  // 0 to 1000 stickers maps to 0 to 1 intensity
+  const maxStickers = 1000;
   const minIntensity = 0.0; // Changed to 0 so 0 stickers = no fire
   const progress = Math.min(count / maxStickers, 1);
   

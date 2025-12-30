@@ -858,6 +858,17 @@ function applyReviewSettingsToUi() {
     document.documentElement.classList.add("admin-hide-online-status");
   }
 
+  // Update Settings Dialog Visibility
+  const marqueeRow = document.getElementById("settingsInfoMarquee");
+  if (marqueeRow) {
+    marqueeRow.hidden = !globalReviewSettings.marqueeEnabled;
+  }
+  
+  const realtimeRow = document.getElementById("settingsInfoRealtime");
+  if (realtimeRow) {
+    realtimeRow.hidden = !globalReviewSettings.showOnlineStatus;
+  }
+
   if (elements.paletteSticker) {
     if (globalReviewSettings.commentEnabled) {
       elements.paletteSticker.style.display = "";

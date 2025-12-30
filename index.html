@@ -229,12 +229,6 @@
           <button type="button" id="searchCloseBtn" class="search-close-btn" aria-label="關閉搜尋">✕</button>
         </div>
       </div>
-      <div id="searchQuickFilters" class="search-quick-filters" hidden>
-        <button type="button" class="quick-filter-btn" data-filter="latest">最新 3 則</button>
-        <button type="button" class="quick-filter-btn" data-filter="month">本月留言</button>
-        <button type="button" class="quick-filter-btn" data-filter="earliest">最早留言</button>
-        <button type="button" class="quick-filter-btn" data-filter="random">隨機留言</button>
-      </div>
       <div id="playbackDateContainer" class="playback-date-container" aria-hidden="true">
         <span id="playbackYearDisplay" class="playback-year"></span>
         <span id="playbackDateDisplay" class="playback-date"></span>
@@ -348,7 +342,7 @@
           <div class="settings-icon">▶</div>
           <div>
             <p class="settings-label">回顧動畫</p>
-            <p class="settings-description">播放神蹟牆的建立過程與感動時刻。</p>
+            <p class="settings-description">播放建立過程。</p>
           </div>
         </div>
         <div class="settings-row info-row">
@@ -360,24 +354,17 @@
           </div>
           <div>
             <p class="settings-label">搜尋留言</p>
-            <p class="settings-description">輸入關鍵字搜尋神蹟留言。</p>
+            <p class="settings-description">輸入關鍵字搜尋留言。</p>
           </div>
         </div>
-        <div class="settings-row info-row">
-          <div class="settings-icon" style="font-size: 0.7rem;">✨</div>
-          <div>
-            <p class="settings-label">閃爍提示</p>
-            <p class="settings-description">閃爍的貼紙代表最新發布的留言。</p>
-          </div>
-        </div>
-        <div class="settings-row info-row">
+        <div class="settings-row info-row" id="settingsInfoMarquee">
           <div class="settings-icon" style="font-size: 0.7rem;">💬</div>
           <div>
             <p class="settings-label">跑馬燈</p>
             <p class="settings-description">點擊跑馬燈文字可查看完整內容。</p>
           </div>
         </div>
-        <div class="settings-row info-row">
+        <div class="settings-row info-row" id="settingsInfoRealtime">
           <div class="settings-icon" style="font-size: 0.7rem;">❤️</div>
           <div>
             <p class="settings-label">即時互動</p>
@@ -418,15 +405,15 @@
   <dialog id="welcomeDialog" class="welcome-dialog">
     <form method="dialog" id="welcomeForm" class="welcome-form">
       <header class="welcome-header">
-        <h2>歡迎來到神蹟牆</h2>
-        <p>請輸入您的名稱，這將顯示在您的留言下方。</p>
+        <h2>歡迎來到感恩牆</h2>
+        <p>請輸入您的名稱。</p>
       </header>
       <div class="welcome-content">
         <label for="welcomeNameInput" class="sr-only">您的名稱</label>
         <input type="text" id="welcomeNameInput" placeholder="您的名稱" maxlength="20" required autocomplete="off">
       </div>
       <footer class="welcome-footer">
-        <button type="submit" class="welcome-primary">開始體驗</button>
+        <button type="submit" class="welcome-primary">開始</button>
       </footer>
     </form>
   </dialog>

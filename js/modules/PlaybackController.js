@@ -325,7 +325,10 @@ function playbackLoop(timestamp) {
       }
 
       // Fire projectile
-      if (sticker.node && sticker.node.dataset.cx && sticker.node.dataset.cy) {
+      // Optimization: Skip projectile if playback is too fast (e.g. > 500 stickers) to prevent DOM churn
+      const useProjectile = state.intervalPerSticker > 40;
+
+      if (useProjectile && sticker.node && sticker.node.dataset.cx && sticker.node.dataset.cy) {
          const targetX = parseFloat(sticker.node.dataset.cx);
          const targetY = parseFloat(sticker.node.dataset.cy);
          
@@ -397,7 +400,8 @@ function revealSticker(sticker) {
 
     sticker.node.style.opacity = "0";
     sticker.node.style.transform = `scale(${startScale})`; 
-    sticker.node.style.filter = "brightness(2.5) drop-shadow(0 0 40px rgba(255,255,255,1))"; // Brighter flash with glow
+    // Optimization: Removed expensive filter animation (drop-shadow) to prevent lag with 1000+ stickers
+    // sticker.node.style.filter = "brightness(2.5) drop-shadow(0 0 40px rgba(255,255,255,1))"; 
     
     window.anime.timeline({
       targets: sticker.node,
@@ -407,15 +411,8 @@ function revealSticker(sticker) {
       scale: [startScale, 1],
       duration: 850,
       easing: "easeOutElastic(1, .5)" // Bouncy elastic effect
-    })
-    .add({
-      filter: [
-        "brightness(2.5) drop-shadow(0 0 40px rgba(255,255,255,1))", 
-        "brightness(1) drop-shadow(0 0 0px rgba(255,255,255,0))"
-      ],
-      duration: 600,
-      easing: "easeOutQuad"
-    }, 0); // Run in parallel with scale
+    });
+    // Removed parallel filter animation
     
   } else {
     sticker.node.style.opacity = "1";
