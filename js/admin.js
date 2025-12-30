@@ -1016,6 +1016,7 @@ function syncReviewControls() {
 }
 
 async function persistReviewSettings(values) {
+  console.log("[Admin] Persisting settings:", values);
   if (!state.authorized) {
     showToast("請先登入管理後再調整審核設定。", "danger");
     syncReviewControls();
@@ -1045,6 +1046,7 @@ async function persistReviewSettings(values) {
     updates.require_sticker_approval = values.requireStickerApproval;
   }
 
+  console.log("[Admin] Update payload:", updates);
   reviewSettingsState.loading = true;
   syncReviewControls();
   try {
@@ -1056,13 +1058,15 @@ async function persistReviewSettings(values) {
     }
     const { data, error } = await query.select().single();
     if (error) {
+      console.error("[Admin] Supabase error:", error);
       throw error;
     }
+    console.log("[Admin] Update success:", data);
     applyReviewSettingsState(data);
     showToast("已更新審核設定。", "success");
   } catch (error) {
     console.error("Failed to update review settings", error);
-    showToast("更新審核設定失敗，請稍後再試。", "danger");
+    showToast(`更新審核設定失敗: ${error.message || error.code}`, "danger");
   } finally {
     reviewSettingsState.loading = false;
     syncReviewControls();
