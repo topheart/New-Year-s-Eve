@@ -26,6 +26,10 @@ let globalState = {};
 let globalViewBox = {};
 let globalReviewSettings = {};
 
+// Queue for handling high-volume inserts
+let insertQueue = [];
+let isProcessingQueue = false;
+
 export function initStickerManager(domElements, state, viewBox, reviewSettings, managerCallbacks) {
   elements = { ...elements, ...domElements };
   globalState = state;
@@ -914,6 +918,71 @@ export function subscribeToReviewSettings() {
     .subscribe();
 }
 
+function processInsertQueue() {
+  if (insertQueue.length === 0) {
+    isProcessingQueue = false;
+    return;
+  }
+
+  isProcessingQueue = true;
+  
+  // Process up to 10 stickers per frame to maintain performance
+  // If queue is very large (>100), increase batch size to catch up
+  let batchSize = 10;
+  if (insertQueue.length > 100) batchSize = 20;
+  if (insertQueue.length > 500) batchSize = 50;
+
+  const batch = insertQueue.splice(0, batchSize);
+  let hasUpdates = false;
+
+  batch.forEach(record => {
+    if (!record || globalState.stickers.has(record.id)) return;
+
+    // Add new sticker
+    const x = record.x_norm * globalViewBox.width;
+    const y = record.y_norm * globalViewBox.height;
+    const node = createStickerNode(record.id, x, y, false);
+    elements.stickersLayer.appendChild(node);
+
+    const isOwner = !record.device_id || !globalState.deviceId || record.device_id === globalState.deviceId;
+    const requireApproval = globalReviewSettings.requireStickerApproval;
+    const canViewNote = !requireApproval || record.is_approved || isOwner;
+
+    const stickerData = {
+      id: record.id,
+      x,
+      y,
+      xNorm: record.x_norm,
+      yNorm: record.y_norm,
+      note: record.note ?? "",
+      node,
+      created_at: record.created_at,
+      updated_at: record.updated_at,
+      deviceId: record.device_id ?? null,
+      isApproved: Boolean(record.is_approved),
+      authorName: record.author_name,
+      canViewNote: canViewNote,
+    };
+
+    globalState.stickers.set(record.id, stickerData);
+    callbacks.runPopAnimation(node);
+    updateStickerReviewState(stickerData);
+    
+    // Only play impact effect if NOT the owner (owner sees it immediately upon save)
+    if (!isOwner) {
+      queueImpactEffect(node);
+    }
+    hasUpdates = true;
+  });
+
+  if (hasUpdates) {
+    callbacks.updateFireIntensity(globalState.stickers);
+    callbacks.updateMarqueePool(globalState.stickers, globalReviewSettings);
+  }
+
+  requestAnimationFrame(processInsertQueue);
+}
+
 export function subscribeToStickers() {
   if (!isSupabaseConfigured() || typeof supabase.channel !== "function") {
     return;
@@ -927,47 +996,14 @@ export function subscribeToStickers() {
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "wall_stickers" },
       (payload) => {
-        console.log("Realtime INSERT received:", payload);
+        // console.log("Realtime INSERT received:", payload);
         const record = payload.new;
-        if (!record || globalState.stickers.has(record.id)) return;
-
-        // Add new sticker
-        const x = record.x_norm * globalViewBox.width;
-        const y = record.y_norm * globalViewBox.height;
-        const node = createStickerNode(record.id, x, y, false);
-        elements.stickersLayer.appendChild(node);
-
-        const isOwner = !record.device_id || !globalState.deviceId || record.device_id === globalState.deviceId;
-        const requireApproval = globalReviewSettings.requireStickerApproval;
-        const canViewNote = !requireApproval || record.is_approved || isOwner;
-
-        const stickerData = {
-          id: record.id,
-          x,
-          y,
-          xNorm: record.x_norm,
-          yNorm: record.y_norm,
-          note: record.note ?? "",
-          node,
-          created_at: record.created_at,
-          updated_at: record.updated_at,
-          deviceId: record.device_id ?? null,
-          isApproved: Boolean(record.is_approved),
-          authorName: record.author_name,
-          canViewNote: canViewNote,
-        };
-
-        globalState.stickers.set(record.id, stickerData);
-        callbacks.runPopAnimation(node);
-        updateStickerReviewState(stickerData);
-        
-        // Only play impact effect if NOT the owner (owner sees it immediately upon save)
-        if (!isOwner) {
-          queueImpactEffect(node);
+        if (record) {
+          insertQueue.push(record);
+          if (!isProcessingQueue) {
+            processInsertQueue();
+          }
         }
-
-        callbacks.updateFireIntensity(globalState.stickers);
-        callbacks.updateMarqueePool(globalState.stickers, globalReviewSettings);
       }
     )
     .on(
@@ -994,14 +1030,22 @@ export function subscribeToStickers() {
       "postgres_changes",
       { event: "DELETE", schema: "public", table: "wall_stickers" },
       (payload) => {
-        const id = payload.old.id;
+        // console.log("Realtime DELETE received:", payload);
+        const id = payload.old?.id;
+        if (!id) return;
+
         const existing = globalState.stickers.get(id);
         if (existing) {
           if (existing.node) existing.node.remove();
           globalState.stickers.delete(id);
-          callbacks.updateFireIntensity(globalState.stickers);
-          callbacks.updateMarqueePool(globalState.stickers, globalReviewSettings);
+        } else {
+          // Fallback: try to find node by dataset directly in DOM
+          const node = document.querySelector(`.sticker-node[data-id="${id}"]`);
+          if (node) node.remove();
         }
+
+        callbacks.updateFireIntensity(globalState.stickers);
+        callbacks.updateMarqueePool(globalState.stickers, globalReviewSettings);
       }
     )
     .subscribe();
