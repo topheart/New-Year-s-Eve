@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Church New Year's Eve 管理</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="css/admin-pagination.css">
+  <link rel="stylesheet" href="css/admin-filter.css">
+  <link rel="stylesheet" href="css/admin-review-compact.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <section class="login-card" id="loginPanel">
+      <h1 class="card-title">留言管控</h1>
+      <p class="card-subtitle">輸入管理密碼後即可管理所有留言。</p>
+      <form id="loginForm" novalidate>
+        <label class="form-label" for="adminPassword">管理密碼</label>
+        <input type="password" id="adminPassword" class="form-input" name="password" autocomplete="current-password" placeholder="請輸入密碼" required>
+        <p id="loginError" class="form-error" role="alert"></p>
+        <button type="submit" class="primary-btn">登入</button>
+      </form>
+      <p class="card-hint">建議自訂密碼後更新程式中的雜湊值。</p>
+      <p class="card-config" id="configNotice" hidden>尚未完成 Supabase 設定，請先於 supabase-config.js 填入相關資訊。</p>
+    </section>
+
+    <section class="dashboard" id="dashboard" hidden aria-live="polite">
+      <header class="dashboard-header">
+        <div class="header-text">
+          <h2 class="dashboard-title">留言總覽</h2>
+          <p class="dashboard-subtitle">最新留言在前，包含建立與更新時間。</p>
+          <p class="dashboard-count">目前貼紙：<span id="totalCount">0</span> 張</p>
+        </div>
+        <div class="header-actions">
+          <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="搜尋留言、ID..." aria-label="搜尋留言">
+          </div>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" id="pendingFilterCheckbox">
+            僅顯示審核中
+          </label>
+          <div class="batch-actions" id="batchActions" hidden>
+            <button type="button" id="batchApproveBtn" class="primary-btn small">批次通過</button>
+            <button type="button" id="batchDeleteBtn" class="danger-btn small">批次刪除</button>
+          </div>
+          <button type="button" id="refreshBtn" class="ghost-btn">重新整理</button>
+          <div class="export-group">
+            <button type="button" id="exportBtn" class="ghost-btn" disabled>匯出 TXT</button>
+            <button type="button" id="exportCsvBtn" class="ghost-btn" disabled>匯出 CSV</button>
+          </div>
+          <button type="button" id="logoutBtn" class="ghost-btn">登出</button>
+        </div>
+      </header>
+
+      <section class="review-controls-compact" id="reviewControls" hidden aria-live="polite">
+        <div class="review-item">
+          <span class="review-item-label" id="marqueeReviewLabel">跑馬燈審核</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="marqueeApprovalToggle" role="switch" aria-labelledby="marqueeReviewLabel">
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+          <span class="review-status-text" id="marqueeReviewStatus">需審核</span>
+        </div>
+        
+        <div class="review-item" id="stickerReviewCard" hidden>
+          <span class="review-item-label" id="stickerReviewLabel">貼紙審核</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="stickerApprovalToggle" role="switch" aria-labelledby="stickerReviewLabel">
+            <span class="switch-track"><span class="switch-thumb"></span></span>
+          </label>
+          <span class="review-status-text" id="stickerReviewStatus">需審核</span>
+        </div>
+      </section>
+
+      <div id="loadingIndicator" class="loading-indicator" hidden>正在載入資料…</div>
+      <div id="emptyState" class="empty-state" hidden>目前尚無留言。</div>
+      <div class="table-wrapper" aria-live="polite">
+        <table class="entries-table">
+          <thead>
+            <tr>
+              <th scope="col" class="col-check">
+                <input type="checkbox" id="selectAllCheckbox" aria-label="全選">
+              </th>
+              <th scope="col">編號</th>
+              <th scope="col">資訊</th>
+              <th scope="col">狀態</th>
+              <th scope="col">留言</th>
+              <th scope="col">操作</th>
+            </tr>
+          </thead>
+          <tbody id="entriesBody"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination-controls" id="paginationControls" hidden>
+        <div class="pagination-input-group">
+          <span>第</span>
+          <input type="number" id="pageInput" class="page-input" min="1" value="1" aria-label="頁碼">
+          <span id="totalPagesLabel">頁，共 1 頁</span>
+        </div>
+        <div class="pagination-buttons">
+          <button type="button" id="prevPageBtn" class="ghost-btn small" disabled>上一頁</button>
+          <button type="button" id="nextPageBtn" class="ghost-btn small" disabled>下一頁</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <template id="entryRowTemplate">
+    <tr class="entry-row" data-id="">
+      <td class="entry-check">
+        <input type="checkbox" class="row-checkbox" aria-label="選取此列">
+      </td>
+      <td class="entry-number" data-label="編號"></td>
+      <td class="entry-meta" data-label="資訊">
+        <div class="entry-id" title="資料庫 ID"></div>
+        <div class="entry-times">
+          <span class="created"></span>
+          <span class="updated"></span>
+        </div>
+        <div class="entry-coords" aria-label="座標"></div>
+      </td>
+      <td class="entry-status" data-label="狀態">
+        <span class="status-badge" data-state="pending">審核中</span>
+      </td>
+      <td class="entry-note" data-label="留言">
+        <textarea class="note-input" rows="4" maxlength="800" required></textarea>
+      </td>
+      <td class="entry-actions" data-label="操作">
+        <button type="button" class="approve-btn" data-action="approve">通過</button>
+        <button type="button" class="revoke-btn" data-action="revoke">取消通過</button>
+        <button type="button" class="primary-btn" data-action="save">儲存</button>
+        <button type="button" class="danger-btn" data-action="delete">刪除</button>
+      </td>
+    </tr>
+  </template>
+
+  <div id="adminToast" class="admin-toast" role="status" aria-live="polite"></div>
+
+  <div id="deleteConfirmModal" class="modal-overlay" hidden aria-hidden="true">
+    <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header class="modal-header">
+        <h3 id="modalTitle" class="modal-title">確認刪除</h3>
+      </header>
+      <div class="modal-body">
+        <p id="modalMessage">確定要刪除這筆留言嗎？此動作無法復原。</p>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" id="modalCancelBtn" class="ghost-btn">取消</button>
+        <button type="button" id="modalConfirmBtn" class="danger-btn">確認刪除</button>
+      </footer>
+    </div>
+  </div>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

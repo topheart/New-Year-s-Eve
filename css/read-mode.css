@@ -1,0 +1,138 @@
+
+/* Read Mode Overlay Styles */
+.read-mode-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Fallback */
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  background: rgba(16, 20, 24, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: none;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  /* Mobile scroll fixes */
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.read-mode-overlay[open] {
+  opacity: 1;
+  pointer-events: auto;
+  display: flex; /* Ensure flex is applied when open */
+}
+
+.read-mode-container {
+  width: clamp(300px, 90vw, 800px);
+  height: clamp(400px, 80vh, 900px);
+  background: #2a2a2a;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.read-mode-header {
+  padding: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.read-mode-header .close-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.read-mode-header .close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+#readModeInput {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #f5f5f5;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  padding: 1.5rem;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  /* Allow scrolling inside input */
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
+#readModeInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.read-mode-content {
+  flex: 1;
+  width: 100%;
+  padding: 1.5rem;
+  color: #f5f5f5;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  /* Removed justify-content: center to fix clipping issue */
+  text-align: left;
+  /* Allow scrolling inside content */
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
+.read-mode-text-wrapper {
+  margin: auto; /* Centers vertically and horizontally */
+  width: fit-content;
+  max-width: 100%;
+  white-space: pre-wrap;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .read-mode-container {
+    width: 100%;
+    height: 100%;
+    height: 100dvh; /* Use dynamic viewport height */
+    border-radius: 0;
+    border: none;
+  }
+  
+  .read-mode-header {
+    padding: 0.8rem;
+    padding-top: calc(0.8rem + env(safe-area-inset-top));
+  }
+}
