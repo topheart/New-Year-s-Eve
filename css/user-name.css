@@ -1,0 +1,110 @@
+
+/* User Name Modal */
+.user-name-modal {
+  width: min(400px, 90vw);
+  border: none;
+  border-radius: 24px;
+  background: rgba(20, 24, 28, 0.95);
+  backdrop-filter: blur(12px);
+  color: var(--text-primary);
+  padding: 2rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.user-name-modal::backdrop {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.user-name-modal .modal-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.user-name-modal h2 {
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem 0;
+  color: var(--accent);
+}
+
+.user-name-modal .modal-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.user-name-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 1rem;
+  color: #fff;
+  font-size: 1.1rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.user-name-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.user-name-modal .modal-footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.user-name-modal .primary-btn {
+  background: var(--accent);
+  color: #101418;
+  border: none;
+  padding: 0.8rem 2.5rem;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.user-name-modal .primary-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* Dialog User Name Display */
+.dialog-user-name {
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  padding-left: 0.2rem;
+  opacity: 0.9;
+}
+
+/* Settings Input */
+.settings-input-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.settings-text-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  color: #fff;
+  font-size: 0.95rem;
+  width: 140px;
+  text-align: right;
+  transition: all 0.2s ease;
+}
+
+.settings-text-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.12);
+}

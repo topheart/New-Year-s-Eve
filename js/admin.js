@@ -831,8 +831,8 @@ function handleMarqueeToggleChange(event) {
   const enabled = Boolean(event.target.checked);
   const nextSticker = enabled ? reviewSettingsState.requireStickerApproval : false;
   void persistReviewSettings({
-    require_marquee_approval: enabled,
-    require_sticker_approval: nextSticker,
+    requireMarqueeApproval: enabled,
+    requireStickerApproval: nextSticker,
   });
 }
 
@@ -868,8 +868,8 @@ function handleStickerToggleChange(event) {
   }
   const enabled = Boolean(event.target.checked);
   void persistReviewSettings({
-    require_marquee_approval: true,
-    require_sticker_approval: enabled,
+    requireMarqueeApproval: true,
+    requireStickerApproval: enabled,
   });
 }
 

@@ -597,7 +597,7 @@ function pickUniqueMarqueeMessage() {
 }
 
 function getAvailableMarqueeMessages() {
-  return marqueeState.pool.length ? marqueeState.pool : [{ text: "神蹟留言即將出現", id: null }];
+  return marqueeState.pool;
 }
 
 function deactivateMarqueeLine(line) {
@@ -626,7 +626,7 @@ function applyMarqueeText(line, item) {
   const text = item?.text ?? "";
   const id = item?.id ?? "";
   
-  const displayText = (text ?? "").trim() || "神蹟留言即將出現";
+  const displayText = (text ?? "").trim();
   const normalized = normalizeMarqueeText(displayText);
   const track = line.querySelector(".marquee-track");
   if (track) {

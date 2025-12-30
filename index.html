@@ -10,6 +10,7 @@
   <link rel="preload" href="css/styles.css" as="style">
   <link rel="icon" type="image/png" sizes="32x32" href="png/logo.png">
   <link rel="apple-touch-icon" href="png/logo.png">
+  <link rel="preload" href="svg/Top Church Mark.svg" as="image">
   <meta name="theme-color" content="#101418">
   <meta name="color-scheme" content="dark">
   <meta name="description" content="Top Church New Year's Eve｜分享神蹟、見證與感動，一起建造同心的教會。">
@@ -36,6 +37,7 @@
   <link rel="stylesheet" href="css/read-mode.css">
   <link rel="stylesheet" href="css/expand-btn.css">
   <link rel="stylesheet" href="css/playback-spotlight.css">
+  <link rel="stylesheet" href="css/user-name.css">
 </head>
 <body>
   <main>
@@ -252,6 +254,22 @@
     </section>
   </main>
 
+  <dialog id="userNameModal" class="user-name-modal" aria-labelledby="userNameTitle">
+    <form method="dialog" id="userNameForm">
+      <header class="modal-header">
+        <h2 id="userNameTitle">歡迎來到神蹟牆</h2>
+        <p class="modal-subtitle">請輸入您的名稱，這將作為您留言的署名。</p>
+      </header>
+      <div class="modal-body">
+        <input type="text" id="userNameInput" class="user-name-input" placeholder="請輸入您的名稱" required maxlength="20" autocomplete="off">
+        <p id="userNameError" class="form-error" role="alert"></p>
+      </div>
+      <footer class="modal-footer">
+        <button type="submit" class="primary-btn">開始使用</button>
+      </footer>
+    </form>
+  </dialog>
+
   <dialog id="noteDialog" class="note-dialog" aria-labelledby="dialogTitle">
     <form method="dialog" id="noteForm">
       <header class="dialog-header">
@@ -280,7 +298,8 @@
               </svg>
             </button>
             <div class="flip-body">
-              <textarea id="noteInput" name="note" rows="6" maxlength="800" required placeholder="輸入你的感動或見證&#10;&#10;『記得署名喔』" aria-label="留言內容"></textarea>
+              <div id="dialogUserNameDisplay" class="dialog-user-name"></div>
+              <textarea id="noteInput" name="note" rows="6" maxlength="800" required placeholder="輸入你的感動或見證" aria-label="留言內容"></textarea>
             </div>
           </section>
         </div>
@@ -305,6 +324,15 @@
         <button type="button" id="settingsCloseBtn" class="settings-close" aria-label="關閉設定">✕</button>
       </header>
       <section class="settings-section" aria-labelledby="audioSettingLabel">
+        <div class="settings-row">
+          <div>
+            <p class="settings-label">使用者名稱</p>
+            <p class="settings-description">修改您的留言署名。</p>
+          </div>
+          <div class="settings-input-wrapper">
+            <input type="text" id="settingsUserNameInput" class="settings-text-input" maxlength="20" placeholder="輸入名稱">
+          </div>
+        </div>
         <div class="settings-row">
           <div>
             <p id="audioSettingLabel" class="settings-label">背景音樂</p>
