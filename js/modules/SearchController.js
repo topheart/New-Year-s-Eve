@@ -203,7 +203,11 @@ function handleInput() {
 
   // Filter
   const matched = Array.from(stickersMap.values())
-    .filter(s => s.note && s.note.toLowerCase().includes(query))
+    .filter(s => {
+      const noteMatch = s.note && s.note.toLowerCase().includes(query);
+      const authorMatch = s.authorName && s.authorName.toLowerCase().includes(query);
+      return noteMatch || authorMatch;
+    })
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // Oldest first
 
   highlightStickers(matched);
