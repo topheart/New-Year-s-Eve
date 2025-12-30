@@ -902,6 +902,7 @@ export function subscribeToStickers() {
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "wall_stickers" },
       (payload) => {
+        console.log("Realtime INSERT received:", payload);
         const record = payload.new;
         if (!record || globalState.stickers.has(record.id)) return;
 

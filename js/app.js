@@ -142,7 +142,6 @@ const state = {
   dragRafId: null,
   isAnimatingReturn: false,
   isTransitioning: false,
-  userName: localStorage.getItem("userName") || "",
 };
 
 // Removed DOM-based ghost stickers in favor of Canvas
@@ -181,7 +180,6 @@ if (typeof window !== "undefined") {
 
 function init() {
   state.deviceId = initialDeviceId ?? ensureDeviceId();
-  checkUserName();
   AudioManager.initAudioManager(backgroundAudio, audioToggle);
   wallSvg.addEventListener("click", handleEagleClick);
   wallSvg.addEventListener("keydown", handleWallKeydown);
@@ -189,35 +187,6 @@ function init() {
   paletteSticker?.addEventListener("keydown", handlePaletteKeydown);
   noteForm.addEventListener("submit", handleFormSubmit);
   
-  // User Name Modal Logic
-  const userNameModal = document.getElementById("userNameModal");
-  const userNameForm = document.getElementById("userNameForm");
-  const userNameInput = document.getElementById("userNameInput");
-  const settingsUserNameInput = document.getElementById("settingsUserNameInput");
-
-  if (userNameForm) {
-    userNameForm.addEventListener("submit", (e) => {
-      if (userNameModal.returnValue === "cancel") return; // Handle escape key if needed
-      const name = userNameInput.value.trim();
-      if (name) {
-        state.userName = name;
-        localStorage.setItem("userName", name);
-        if (settingsUserNameInput) settingsUserNameInput.value = name;
-      }
-    });
-  }
-
-  if (settingsUserNameInput) {
-    settingsUserNameInput.value = state.userName;
-    settingsUserNameInput.addEventListener("change", (e) => {
-      const name = e.target.value.trim();
-      if (name) {
-        state.userName = name;
-        localStorage.setItem("userName", name);
-      }
-    });
-  }
-
   // Read Mode Overlay Logic
   const readModeOverlay = document.getElementById('readModeOverlay');
   const readModeInput = document.getElementById('readModeInput');
@@ -584,20 +553,6 @@ function init() {
 
 
 
-function checkUserName() {
-  if (!state.userName) {
-    const modal = document.getElementById("userNameModal");
-    if (modal) {
-      modal.showModal();
-      // Prevent closing by escape key if strictly required, but standard dialog behavior is usually fine.
-      // To strictly enforce, we can listen to 'cancel' event.
-      modal.addEventListener('cancel', (e) => {
-        if (!state.userName) e.preventDefault();
-      }, { once: true });
-    }
-  }
-}
-
 function initSettingsDialog() {
   if (!settingsBtn || !settingsDialog) {
     return;
@@ -815,37 +770,7 @@ function handleStickerNavigation(sticker, direction = 1) {
 
 function updateDialogContent(record, lockReason) {
   dialogTitle.textContent = "神蹟留言";
-  
-  const userNameDisplay = document.getElementById("dialogUserNameDisplay");
-  let displayNote = record.note ?? "";
-  
-  if (userNameDisplay) {
-    if (state.pending && state.pending.isNew) {
-      // New Note: Show current user name
-      userNameDisplay.textContent = `署名: ${state.userName}`;
-      userNameDisplay.hidden = false;
-      displayNote = ""; 
-    } else {
-      // Existing Note (View or Edit)
-      // Try to extract signature from the first line
-      const firstLineEnd = displayNote.indexOf('\n');
-      if (firstLineEnd !== -1) {
-        const firstLine = displayNote.substring(0, firstLineEnd);
-        // Simple heuristic: assume first line is name if it's short enough
-        if (firstLine.length <= 20) {
-          userNameDisplay.textContent = `署名: ${firstLine}`;
-          userNameDisplay.hidden = false;
-          displayNote = displayNote.substring(firstLineEnd + 1);
-        } else {
-          userNameDisplay.hidden = true;
-        }
-      } else {
-        userNameDisplay.hidden = true;
-      }
-    }
-  }
-
-  noteInput.value = displayNote;
+  noteInput.value = record.note ?? "";
   resetNoteInputScrollPosition();
   formError.textContent = "";
   setTimestampDisplay(record);
@@ -1272,7 +1197,7 @@ function beginPlacement(x, y) {
     isApproved: false,
     canViewNote: true,
   };
-  dialogTitle.textContent = "新增神蹟留言";
+  dialogTitle.textContent = "新增貼紙";
   noteInput.value = "";
   resetNoteInputScrollPosition();
   formError.textContent = "";
@@ -1453,17 +1378,11 @@ async function handleFormSubmit(event) {
   event.preventDefault();
   if (state.isSubmitting) return;
 
-  let message = noteInput.value.trim();
+  const message = noteInput.value.trim();
   if (!message) {
     formError.textContent = "請輸入留言內容";
     return;
   }
-
-  // Prepend User Name if available
-  if (state.userName) {
-    message = `${state.userName}\n${message}`;
-  }
-
   const pending = state.pending;
   if (pending?.locked) {
     if (pending.lockReason === "approved") {
