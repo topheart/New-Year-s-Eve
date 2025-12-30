@@ -128,10 +128,12 @@
 /* Author Name Display */
 .sticker-author {
   display: block;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
   color: var(--accent);
   text-align: right;
   font-weight: 500;
   opacity: 0.9;
+  padding-right: 0.5rem;
 }

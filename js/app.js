@@ -2058,10 +2058,14 @@ function finalizeFlipReveal() {
     const display = document.createElement("span");
     display.id = "noteAuthorDisplay";
     display.className = "sticker-author";
-    display.textContent = `— ${currentAuthor}`;
+    display.textContent = `${currentAuthor}`;
     
-    // Insert after the textarea or timestamp
-    if (noteTimestamp && noteTimestamp.parentNode) {
+    // Insert inside the flip-body, after the textarea
+    const flipBody = document.querySelector(".flip-body");
+    if (flipBody) {
+      flipBody.appendChild(display);
+    } else if (noteTimestamp && noteTimestamp.parentNode) {
+      // Fallback
       noteTimestamp.parentNode.insertBefore(display, noteTimestamp.nextSibling);
     } else {
       noteForm.appendChild(display);

@@ -1027,7 +1027,7 @@ function syncReviewControls() {
   const marqueeRequired = Boolean(reviewSettingsState.requireMarqueeApproval);
   if (marqueeToggle) {
     marqueeToggle.checked = marqueeRequired;
-    marqueeToggle.disabled = reviewSettingsState.loading || !marqueeEnabled;
+    marqueeToggle.disabled = reviewSettingsState.loading;
   }
   if (marqueeReviewStatus) {
     marqueeReviewStatus.textContent = marqueeRequired ? "需審核" : "免審";
@@ -1039,7 +1039,7 @@ function syncReviewControls() {
   const stickerEnabled = marqueeRequired && Boolean(reviewSettingsState.requireStickerApproval);
   if (stickerToggle) {
     stickerToggle.checked = stickerEnabled;
-    stickerToggle.disabled = reviewSettingsState.loading || !marqueeRequired || !marqueeEnabled;
+    stickerToggle.disabled = reviewSettingsState.loading || !marqueeRequired;
   }
   if (stickerReviewStatus) {
     stickerReviewStatus.textContent = stickerEnabled ? "需審核" : "免審";
